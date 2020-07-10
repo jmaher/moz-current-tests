@@ -1,0 +1,31 @@
+SET @frameworks = 'raptor,browsertime,talos,awsy';
+
+select
+perf_summary.revision,
+platform.platform,
+perf_summary.suite
+FROM (
+select
+distinct push.revision as revision,
+signature.platform_id as platform_id,
+signature.suite as suite,
+summary.id as id
+from
+performance_alert_summary as summary
+INNER JOIN performance_alert as alert ON (summary.id=alert.summary_id or summary.id=related_summary_id)
+INNER JOIN push as push ON push.id = summary.push_id
+INNER JOIN performance_signature AS signature ON signature.id = alert.series_signature_id
+INNER JOIN performance_framework AS framework ON framework.id = signature.framework_id
+where
+FIND_IN_SET(framework.name, @frameworks)
+AND (summary.notes IS NULL OR summary.notes NOT LIKE '%#harness%') -- ignore harness updates
+AND (summary.notes IS NULL OR summary.notes NOT LIKE '%#infra%') -- ignore false alerts caused by infra changes
+AND summary.created >= "2019-09-01"
+AND summary.status in (2,5,4,7,8) -- reassigned,investigating + improvements/fixed/backedout
+) AS perf_summary
+INNER JOIN performance_alert as alert ON (perf_summary.id=alert.summary_id or perf_summary.id=related_summary_id)
+INNER JOIN machine_platform as platform ON (perf_summary.platform_id=platform.id)
+GROUP BY
+  platform.platform,
+  perf_summary.suite
+  

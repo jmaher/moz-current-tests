@@ -188,6 +188,8 @@ def get_minimal_testset(data, iterations=100):
 	print("Chosen tests: %s\n" % info['tests'])
 	print("Rejected tests: %s" % info['rejected_tests'])
 
+	print("Chosen tests: %s\n" % len(info['tests']))
+	print("Rejected tests: %s" % len(info['rejected_tests']))
 	return info
 
 
@@ -219,14 +221,52 @@ def view_histogram(data):
 	plt.show()
 
 
+def filter_data(data, buglist):
+	retVal = []
+	unique_bugs = []
+	first = True
+	for row in data:
+		if first:
+			retVal.append(row)
+			first = False
+			continue
+
+		try:
+			b = int(row[0])
+			if b <= 1587465: continue # oct 9th
+			if b not in unique_bugs:
+				unique_bugs.append(b)
+		except:
+			pass
+#		for b in buglist:
+#			if row[0] == str(b): retVal.append(row)
+		retVal.append(row)
+	return retVal
+
+
 def main():
-	args = highvalue_parser().parse_args()
-	data = open_csv_data(args.input)
+    args = highvalue_parser().parse_args()
+    data = open_csv_data(args.input)
 
-	get_minimal_testset(data, args.iterations)
+    """
+    # talos invalid bugs
+	invalid_bugs = [1532656, 1598013, 1388674, 1610497, 1597704, 1591051, 1609748, 1603482, 1593251, 1545385, 1595076, 1547877, 1616838, 1559878, 1603015]
+	invalid_bugs.extend([1572682, 1533546, 1575504, 1480146, 1595218, 1590387])
 
-	if args.view:
-		view_histogram(data)
+	valid_bugs = [1582081, 1594753, 1570921, 1605084, 1597679, 1604410, 1585582, 1587345, 1603083, 1605345, 1593995, 1592612]
+	valid_bugs.extend([1584101, 1601924, 1568760, 1589638, 1596712, 1534538, 1595707, 1586204, 1586220, 1583766, 1562825, 1550496])
+	valid_bugs.extend([1582749, 1559879, 1592918, 1581528, 1541353, 1578991, 1591921, 1603115, 1586744, 1594407])
+	valid_bugs.extend([1607750, 1607746, 1611144, 1616268, 1583768]) # newer than 2019
+	valid_bugs.extend([1562142, 1545380, 1559318, 1565486, 1557771, 1578386, 1566744, 1555967, 1575818, 1535031, 1548449, 1552425, 1556412, 1573211, 1545015]) # missing perf-alert
+	valid_bugs.extend([1611098, 1559072, 1605345, 1551520, 1572691, 1607746, 1574844, 1581528, 1557701, 1586204, 1596709, 1550496, 1582081, 1542830, 1604535, 1568501]) # talos
+	valid_bugs.extend([1534209, 1600003, 1613314, 1567385, 1554848, 1573158, 1574449, 1563699, 1563700, 1568450, 1541350, 1570256, 1578576, 1605110, 1570935]) # talos
+	data = filter_data(data, valid_bugs)
+	"""
+    data = filter_data(data, [])
+    get_minimal_testset(data, args.iterations)
+
+#	if args.view:
+#		view_histogram(data)
 
 
 if __name__=="__main__":

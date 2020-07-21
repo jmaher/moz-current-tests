@@ -59,6 +59,6 @@ for rev in revisions:
 
 dates.sort()
 for date in dates:
-    print datemap[date]
+    print(json.dumps(datemap[date]))
 #print("min push: %s" % min_rev)
 #print("max push: %s" % max_rev)
